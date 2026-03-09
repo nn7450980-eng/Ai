@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#00f5ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NOVA">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>NOVA v11 GENESIS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap');
+:root{
+  --p:#00f5ff;--p2:#0066cc;--s:#ff6b35;
+  --bg:#020810;--sur:#071825;--sur2:#0c2235;--sur3:#112840;
+  --txt:#d0f0ff;--dim:#3a7a9a;--dim2:#2a5a7a;
+  --ok:#00ff88;--warn:#ffcc00;--danger:#ff3366;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overscroll-behavior:none;}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:'Exo 2',sans-serif;
+  overflow-x:hidden;
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(0,245,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,245,255,0.025) 1px,transparent 1px);
+  background-size:44px 44px;
+}
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(0,245,255,0.06) 0%,transparent 65%);
+}
+
+/* ── INSTALL BANNER ── */
+#install-banner{
+  display:none;position:fixed;bottom:80px;left:12px;right:12px;z-index:800;
+  background:linear-gradient(135deg,var(--sur3),var(--sur2));
+  border:1px solid rgba(0,245,255,0.35);border-radius:16px;
+  padding:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5);
+  animation:slideUp 0.4s ease;
+}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+#install-banner.show{display:block;}
+#ib-title{font-family:'Orbitron',monospace;font-size:14px;color:var(--p);margin-bottom:6px;}
+#ib-text{font-size:12px;color:var(--dim);margin-bottom:14px;line-height:1.6;}
+#ib-btns{display:flex;gap:10px;}
+
+/* ── PERMISSION MODAL ── */
+#pm{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:900;align-items:center;justify-content:center;}
+#pm.show{display:flex;}
+.pm-box{background:var(--sur);border:1px solid rgba(0,245,255,0.28);border-radius:20px;padding:28px 22px;max-width:330px;width:92%;text-align:center;}
+.pm-icon{font-size:58px;margin-bottom:12px;}
+.pm-title{font-family:'Orbitron',monospace;font-size:15px;color:var(--p);margin-bottom:10px;letter-spacing:2px;}
+.pm-text{font-size:12.5px;color:var(--dim);line-height:1.7;margin-bottom:22px;}
+
+/* ── HEADER ── */
+#hdr{
+  position:sticky;top:0;z-index:300;height:52px;
+  background:rgba(2,8,16,0.96);
+  border-bottom:1px solid rgba(0,245,255,0.14);
+  backdrop-filter:blur(20px);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;
+}
+#logo{
+  font-family:'Orbitron',monospace;font-size:21px;font-weight:900;
+  background:linear-gradient(135deg,var(--p),var(--p2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;letter-spacing:4px;
+  filter:drop-shadow(0 0 10px rgba(0,245,255,0.4));
+}
+#ver{font-size:8px;color:var(--dim);letter-spacing:2px;margin-top:1px;}
+#hdr-r{display:flex;align-items:center;gap:9px;}
+.sdot{width:8px;height:8px;border-radius:50%;animation:pulse 2s infinite;}
+.sdot.on{background:var(--ok);box-shadow:0 0 8px var(--ok);}
+.sdot.off{background:var(--danger);box-shadow:0 0 8px var(--danger);}
+#bbadge{font-family:'Orbitron',monospace;font-size:9px;padding:3px 9px;border-radius:10px;background:rgba(0,245,255,0.08);border:1px solid rgba(0,245,255,0.2);color:var(--p);}
+#bg-led{font-size:10px;color:var(--dim);cursor:pointer;}
+
+/* ── STATUS BAR ── */
+#sb{
+  display:flex;align-items:center;
+  background:var(--sur);border-bottom:1px solid rgba(0,245,255,0.07);
+  overflow-x:auto;scrollbar-width:none;padding:0 8px;
+}
+#sb::-webkit-scrollbar{display:none;}
+.si{display:flex;flex-direction:column;align-items:center;padding:5px 9px;flex-shrink:0;border-right:1px solid rgba(0,245,255,0.05);}
+.sl{font-size:7px;color:var(--dim);letter-spacing:1px;}
+.sb2{width:42px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:3px;}
+.sf{height:100%;border-radius:2px;transition:width 1.5s ease;}
+.jf{background:linear-gradient(90deg,#ffcc00,#ff6b35);}
+.ff{background:linear-gradient(90deg,#00f5ff,#0080ff);}
+.ef{background:linear-gradient(90deg,#00ff88,#00f5ff);}
+.mf2{background:linear-gradient(90deg,#9b59b6,#0080ff);}
+.sv{font-size:10px;color:var(--p);margin-top:2px;font-family:'Orbitron',monospace;}
+
+/* ── PAGES ── */
+.page{display:none;padding-bottom:76px;}
+.page.active{display:block;}
+
+/* ── HOME ── */
+#today-card{
+  background:linear-gradient(135deg,rgba(0,245,255,0.04),rgba(0,128,255,0.07));
+  border:1px solid rgba(0,245,255,0.1);border-radius:16px;
+  margin:12px;padding:16px;position:relative;overflow:hidden;
+}
+#today-card::before{content:'';position:absolute;top:-60%;right:-20%;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(0,245,255,0.05),transparent);pointer-events:none;}
+#tc-time{font-family:'Orbitron',monospace;font-size:30px;font-weight:900;color:var(--p);text-shadow:0 0 20px rgba(0,245,255,0.35);}
+#tc-date{font-size:11px;color:var(--dim);margin-top:3px;letter-spacing:1px;}
+#tc-greet{font-size:13.5px;color:var(--txt);margin-top:9px;font-weight:600;}
+#tc-status{font-size:10px;color:var(--dim);margin-top:3px;}
+#tc-wx{position:absolute;top:14px;right:14px;text-align:center;}
+#tc-wi{font-size:26px;}
+#tc-wt{font-family:'Orbitron',monospace;font-size:13px;color:var(--p);}
+
+/* ── ORB ── */
+#orb-sec{display:flex;flex-direction:column;align-items:center;padding:18px 16px 6px;}
+#orb-wrap{position:relative;width:164px;height:164px;cursor:pointer;}
+.ring{position:absolute;border-radius:50%;border:1px solid;animation:spin linear infinite;top:50%;left:50%;transform-origin:center;will-change:transform;}
+.r1{width:118px;height:118px;margin:-59px 0 0 -59px;border-color:rgba(0,245,255,0.45);animation-duration:6s;}
+.r2{width:138px;height:138px;margin:-69px 0 0 -69px;border-color:rgba(255,107,53,0.28);animation-duration:10s;animation-direction:reverse;}
+.r3{width:158px;height:158px;margin:-79px 0 0 -79px;border-color:rgba(0,245,255,0.13);animation-duration:18s;}
+.r4{width:178px;height:178px;margin:-89px 0 0 -89px;border-color:rgba(0,255,136,0.07);animation-duration:28s;animation-direction:reverse;}
+.r5{width:196px;height:196px;margin:-98px 0 0 -98px;border-color:rgba(0,128,255,0.04);animation-duration:40s;}
+.ring::before{content:'';position:absolute;width:8px;height:8px;border-radius:50%;top:-4px;left:50%;transform:translateX(-50%);}
+.r1::before{background:var(--p);box-shadow:0 0 10px var(--p);}
+.r2::before{background:var(--s);box-shadow:0 0 10px var(--s);}
+.r3::before{background:var(--ok);box-shadow:0 0 8px var(--ok);}
+#orb{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:98px;height:98px;border-radius:50%;
+  background:radial-gradient(circle at 32% 32%,rgba(0,245,255,0.55),rgba(0,80,150,0.3),rgba(2,8,16,0.92));
+  box-shadow:0 0 40px rgba(0,245,255,0.28),inset 0 0 22px rgba(0,245,255,0.12);
+  display:flex;align-items:center;justify-content:center;font-size:38px;
+  transition:all 0.3s ease;
+}
+#orb.listening{box-shadow:0 0 70px rgba(0,245,255,1),inset 0 0 35px rgba(0,245,255,0.5);animation:op 0.45s infinite alternate;}
+#orb.speaking{box-shadow:0 0 70px rgba(255,107,53,0.9),inset 0 0 35px rgba(255,107,53,0.4);}
+#orb.thinking{box-shadow:0 0 60px rgba(0,255,136,0.7),inset 0 0 28px rgba(0,255,136,0.25);}
+#orb.wake{box-shadow:0 0 80px rgba(255,204,0,1),inset 0 0 40px rgba(255,204,0,0.4);}
+@keyframes op{from{transform:translate(-50%,-50%) scale(1)}to{transform:translate(-50%,-50%) scale(1.07)}}
+#orb-lbl{margin-top:34px;font-size:10px;color:var(--dim);letter-spacing:2px;text-align:center;}
+#orb-name{font-family:'Orbitron',monospace;font-size:13px;color:var(--p);margin-top:3px;text-align:center;letter-spacing:3px;text-shadow:0 0 14px rgba(0,245,255,0.4);}
+
+/* ── RESPONSE ── */
+#resp-box{
+  background:var(--sur);border:1px solid rgba(0,245,255,0.11);border-radius:14px;
+  padding:14px 15px;margin:6px 12px;min-height:68px;font-size:13.5px;line-height:1.7;position:relative;
+}
+#resp-box::after{content:'NOVA v11';position:absolute;top:7px;right:10px;font-family:'Orbitron',monospace;font-size:7px;color:rgba(0,245,255,0.18);letter-spacing:2px;}
+#brain-lbl{font-size:9px;color:var(--dim);margin:4px 12px 0;font-family:'Orbitron',monospace;letter-spacing:1px;}
+
+/* ── WAKE WORD BAR ── */
+#wake-bar{
+  display:flex;align-items:center;gap:8px;
+  margin:6px 12px;padding:7px 12px;
+  background:rgba(255,204,0,0.04);border:1px solid rgba(255,204,0,0.14);border-radius:9px;
+  font-size:11px;color:var(--warn);cursor:pointer;
+}
+#wdot{width:6px;height:6px;border-radius:50%;background:var(--warn);animation:pulse 1.2s infinite;}
+
+/* ── INPUT ROW ── */
+#inp-row{display:flex;gap:9px;align-items:center;padding:8px 12px;}
+#mic-btn{
+  width:52px;height:52px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(0,245,255,0.1),rgba(0,128,255,0.1));
+  border:2px solid rgba(0,245,255,0.3);color:var(--p);font-size:22px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;
+}
+#mic-btn.on{border-color:var(--p);box-shadow:0 0 28px rgba(0,245,255,0.7);animation:mp 0.8s infinite alternate;}
+@keyframes mp{from{box-shadow:0 0 10px rgba(0,245,255,0.4)}to{box-shadow:0 0 40px rgba(0,245,255,1)}}
+#txt-in{
+  flex:1;background:var(--sur2);border:1px solid rgba(0,245,255,0.14);border-radius:10px;
+  padding:12px 13px;color:var(--txt);font-family:'Exo 2',sans-serif;font-size:14px;outline:none;
+}
+#txt-in:focus{border-color:rgba(0,245,255,0.38);}
+#send-btn{
+  width:48px;height:48px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--p),var(--p2));
+  border:none;color:#000;font-size:20px;font-weight:900;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+
+/* ── QUICK CMDS ── */
+#qcmds{display:flex;flex-wrap:wrap;gap:7px;padding:2px 12px 10px;}
+.qc{padding:7px 13px;background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.11);border-radius:20px;font-size:11px;color:var(--dim);cursor:pointer;font-family:'Exo 2',sans-serif;transition:all 0.2s;}
+.qc:active{background:rgba(0,245,255,0.12);color:var(--p);}
+
+/* ── STATS ── */
+#stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 12px 10px;}
+.stat{background:var(--sur);border:1px solid rgba(0,245,255,0.08);border-radius:12px;padding:11px 8px;text-align:center;}
+.stat-n{font-family:'Orbitron',monospace;font-size:18px;color:var(--p);}
+.stat-l{font-size:8px;color:var(--dim);margin-top:3px;letter-spacing:1px;}
+
+/* ── BRAINS HOME ── */
+#brains-home-area{padding:0 12px 12px;}
+.sec-t{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--p);margin-bottom:9px;padding-bottom:5px;border-bottom:1px solid rgba(0,245,255,0.1);}
+#bh-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.bh-row{display:flex;align-items:center;gap:8px;background:var(--sur2);border-radius:8px;padding:8px 10px;border:1px solid rgba(0,245,255,0.06);}
+.bdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.bdot.on{background:var(--ok);box-shadow:0 0 6px var(--ok);}
+.bdot.off{background:rgba(255,255,255,0.1);}
+.bname{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:1px;flex:1;}
+.bst{font-size:9px;}
+
+/* ── TABS ── */
+#tabs{display:none;flex;background:var(--sur);border-bottom:1px solid rgba(0,245,255,0.08);overflow-x:auto;scrollbar-width:none;position:sticky;top:52px;z-index:200;}
+#tabs::-webkit-scrollbar{display:none;}
+.tab{flex:0 0 auto;padding:9px 13px;font-family:'Orbitron',monospace;font-size:8px;letter-spacing:1px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;}
+.tab.active{color:var(--p);border-bottom-color:var(--p);text-shadow:0 0 10px var(--p);}
+
+/* ── PANELS ── */
+.panel{display:none;padding:14px;padding-bottom:76px;}
+.panel.active{display:block;}
+
+/* ── CHAT ── */
+#chat-msgs{max-height:290px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:12px;scrollbar-width:thin;scrollbar-color:rgba(0,245,255,0.15) transparent;}
+.msg{padding:11px 14px;border-radius:12px;font-size:13.5px;line-height:1.6;max-width:94%;animation:fi 0.3s ease;}
+.mn{background:var(--sur2);border:1px solid rgba(0,245,255,0.11);align-self:flex-start;}
+.mu{background:rgba(0,245,255,0.06);border:1px solid rgba(0,245,255,0.15);align-self:flex-end;color:var(--p);}
+
+/* ── TASKS ── */
+#task-list{max-height:230px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;margin-bottom:11px;}
+.ti{display:flex;align-items:center;gap:8px;background:var(--sur2);border:1px solid rgba(0,245,255,0.08);border-radius:9px;padding:9px 12px;font-size:13px;animation:fi 0.3s;}
+.tpbar{width:4px;height:36px;border-radius:2px;flex-shrink:0;}
+.tpbar.high{background:var(--danger);}
+.tpbar.med{background:var(--warn);}
+.tpbar.low{background:var(--ok);}
+.tck{width:18px;height:18px;border-radius:4px;border:1px solid rgba(0,245,255,0.25);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;}
+.tck.done{background:rgba(0,255,136,0.15);border-color:var(--ok);color:var(--ok);}
+.tdone{text-decoration:line-through;opacity:0.4;}
+
+/* ── NOTES ── */
+#notes-list{max-height:250px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:11px;}
+.ni{background:var(--sur2);border-left:3px solid var(--p);border-radius:0 10px 10px 0;padding:10px 12px;font-size:13px;animation:fi 0.3s;}
+.nt{font-size:9px;color:var(--dim);margin-top:4px;}
+
+/* ── REMINDERS ── */
+#rem-list{max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;margin-bottom:11px;}
+.ri{display:flex;align-items:center;justify-content:space-between;background:var(--sur2);border:1px solid rgba(255,107,53,0.15);border-radius:9px;padding:9px 12px;font-size:12px;animation:fi 0.3s;}
+
+/* ── POWERS ── */
+#powers-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.pb{background:var(--sur2);border:1px solid rgba(0,245,255,0.1);border-radius:13px;padding:16px 10px;text-align:center;cursor:pointer;transition:all 0.2s;}
+.pb:active{background:rgba(0,245,255,0.07);border-color:rgba(0,245,255,0.3);}
+.pi{font-size:27px;margin-bottom:7px;}
+.pn{font-family:'Orbitron',monospace;font-size:8px;color:var(--dim);letter-spacing:1px;}
+
+/* ── APPS ── */
+#apps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:13px;}
+.ab{background:var(--sur2);border:1px solid rgba(0,245,255,0.08);border-radius:13px;padding:12px 6px;text-align:center;cursor:pointer;transition:all 0.2s;}
+.ab:active{background:rgba(0,245,255,0.07);}
+.aico{font-size:26px;margin-bottom:4px;}
+.anm{font-size:9px;color:var(--dim);}
+#wx-card{background:linear-gradient(135deg,var(--sur2),rgba(0,100,150,0.15));border:1px solid rgba(0,245,255,0.15);border-radius:14px;padding:16px;text-align:center;margin-bottom:12px;}
+
+/* ── SKILLS ── */
+#skills-list{display:flex;flex-direction:column;gap:8px;}
+.ski{background:var(--sur2);border-radius:9px;padding:10px 12px;border:1px solid rgba(0,245,255,0.08);}
+.skh{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;}
+.skb{height:4px;background:rgba(255,255,255,0.07);border-radius:2px;}
+.skf{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--p),var(--p2));transition:width 1.2s ease;}
+
+/* ── MEMORY ── */
+#mem-list{display:flex;flex-direction:column;gap:8px;margin-bottom:13px;max-height:300px;overflow-y:auto;}
+.mli{background:var(--sur2);border-radius:9px;padding:10px 12px;border:1px solid rgba(0,245,255,0.08);font-size:12px;animation:fi 0.3s;}
+.mlt{font-family:'Orbitron',monospace;font-size:8px;color:var(--p);letter-spacing:1px;margin-bottom:4px;}
+.mld{color:var(--txt);line-height:1.5;}
+.mlts{font-size:9px;color:var(--dim2);margin-top:4px;}
+
+/* ── LEARN ── */
+#learn-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px;}
+.lt{background:var(--sur2);border:1px solid rgba(0,245,255,0.1);border-radius:11px;padding:14px 10px;text-align:center;cursor:pointer;transition:all 0.2s;}
+.lt:active{background:rgba(0,245,255,0.06);}
+.ltico{font-size:26px;margin-bottom:6px;}
+.ltnm{font-family:'Orbitron',monospace;font-size:8px;color:var(--dim);letter-spacing:1px;}
+
+/* ── BRAINS PANEL ── */
+#brains-full{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.bfr{display:flex;align-items:center;gap:10px;background:var(--sur2);border-radius:10px;padding:10px 12px;border:1px solid rgba(0,245,255,0.07);}
+.bfr .bdot{width:9px;height:9px;}
+.bfi{flex:1;}
+.bfn{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:1px;color:var(--txt);}
+.bfd{font-size:10px;color:var(--dim);margin-top:2px;}
+.bfl{font-size:9px;color:var(--p);margin-top:2px;}
+
+/* ── AUTO ── */
+#auto-tpl{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
+#auto-out{background:var(--sur2);border:1px solid rgba(0,245,255,0.11);border-radius:12px;padding:14px;font-size:12px;line-height:1.85;min-height:85px;white-space:pre-wrap;margin-top:12px;color:var(--txt);}
+
+/* ── SETUP ── */
+.sg{margin-bottom:13px;background:var(--sur2);border:1px solid rgba(0,245,255,0.08);border-radius:12px;padding:13px;}
+.slb{font-size:10px;color:var(--dim);letter-spacing:1px;margin-bottom:5px;}
+.inp{width:100%;background:var(--sur);border:1px solid rgba(0,245,255,0.12);border-radius:7px;padding:9px 12px;color:var(--txt);font-family:'Exo 2',sans-serif;font-size:13px;outline:none;margin-bottom:8px;}
+.inp:focus{border-color:rgba(0,245,255,0.35);}
+select.inp option{background:#071825;}
+#themes-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px;}
+.tc2{padding:7px 15px;border-radius:20px;cursor:pointer;font-size:10px;border:1px solid;transition:all 0.2s;font-family:'Exo 2',sans-serif;}
+.tc2.active{font-weight:700;box-shadow:0 0 12px currentColor;}
+
+/* ── BUTTONS ── */
+.btn{padding:9px 14px;border:none;border-radius:8px;cursor:pointer;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:1px;font-weight:700;transition:all 0.2s;display:inline-flex;align-items:center;gap:5px;}
+.bp{background:linear-gradient(135deg,var(--p),var(--p2));color:#000;}
+.bs{background:rgba(0,245,255,0.07);border:1px solid rgba(0,245,255,0.22);color:var(--p);}
+.bd2{background:rgba(255,51,102,0.07);border:1px solid rgba(255,51,102,0.22);color:var(--danger);}
+.bg2{background:rgba(0,255,136,0.07);border:1px solid rgba(0,255,136,0.22);color:var(--ok);}
+.bw{background:rgba(255,204,0,0.07);border:1px solid rgba(255,204,0,0.22);color:var(--warn);}
+.btn:active{transform:scale(0.95);}
+
+/* ── NOTIF ── */
+#notif{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--sur2);border:1px solid rgba(0,245,255,0.28);border-radius:12px;padding:11px 22px;font-size:13px;color:var(--p);opacity:0;transition:all 0.3s;z-index:700;pointer-events:none;max-width:92vw;text-align:center;}
+#notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── BOTTOM NAV ── */
+#bnav{
+  position:fixed;bottom:0;left:0;right:0;z-index:300;
+  background:rgba(7,24,37,0.97);
+  border-top:1px solid rgba(0,245,255,0.12);
+  display:flex;
+  backdrop-filter:blur(20px);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.nb{flex:1;padding:9px 2px;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--dim);transition:all 0.2s;}
+.nb.active{color:var(--p);}
+.nbi{font-size:19px;}
+.nbl{font-family:'Orbitron',monospace;font-size:7px;letter-spacing:1px;display:block;margin-top:2px;}
+
+/* ── ANIMATIONS ── */
+.typing{display:flex;gap:5px;align-items:center;padding:4px 0;}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--p);opacity:0.3;animation:bl 1s infinite;}
+.typing span:nth-child(2){animation-delay:0.2s}.typing span:nth-child(3){animation-delay:0.4s}
+@keyframes bl{0%,100%{opacity:0.3}50%{opacity:1}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.15);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- INSTALL BANNER -->
+<div id="install-banner">
+  <div id="ib-title">📲 INSTALL NOVA AS APP</div>
+  <div id="ib-text">Install NOVA on your home screen for the best experience — works offline, no browser bar, opens like a real app!</div>
+  <div id="ib-btns">
+    <button class="btn bp" id="ib-install" onclick="installApp()">⬇️ INSTALL APP</button>
+    <button class="btn bs" onclick="document.getElementById('install-banner').classList.remove('show')">Later</button>
+  </div>
+</div>
+
+<!-- PERMISSION MODAL -->
+<div id="pm">
+  <div class="pm-box">
+    <div class="pm-icon">🧬</div>
+    <div class="pm-title">NOVA v11 GENESIS</div>
+    <div class="pm-text">Your next-generation personal AI assistant with 10 AI brains, voice recognition, memory system, wake word, and learning engine. I will never act without your permission or share your data.</div>
+    <button class="btn bp" style="width:100%;justify-content:center;margin-bottom:10px;padding:13px;font-size:11px;" onclick="grantPerm()">🚀 ACTIVATE NOVA — GRANT ACCESS</button>
+    <button class="btn bs" style="width:100%;justify-content:center;" onclick="denyPerm()">Text Mode Only</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div><div id="logo">NOVA</div><div id="ver">v11.0 GENESIS</div></div>
+  <div id="hdr-r">
+    <div class="sdot off" id="sdot"></div>
+    <div id="bbadge">0 BRAINS</div>
+    <div id="bg-led" onclick="toggleBG()">BG●</div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div id="sb">
+  <div class="si"><div class="sl">JOY</div><div class="sb2"><div class="sf jf" id="mj" style="width:72%"></div></div></div>
+  <div class="si"><div class="sl">FOCUS</div><div class="sb2"><div class="sf ff" id="mfc" style="width:84%"></div></div></div>
+  <div class="si"><div class="sl">ENERGY</div><div class="sb2"><div class="sf ef" id="me" style="width:65%"></div></div></div>
+  <div class="si"><div class="sl">MEMORY</div><div class="sb2"><div class="sf mf2" id="mmb" style="width:20%"></div></div></div>
+  <div class="si"><div class="sl">BATTERY</div><div class="sv" id="batt">--%</div></div>
+  <div class="si"><div class="sl">TIME</div><div class="sv" id="live-t">--:--</div></div>
+  <div class="si"><div class="sl">WAKE</div><div class="sv" id="wake-st" style="color:var(--dim)">OFF</div></div>
+</div>
+
+<!-- HOME PAGE -->
+<div id="home" class="page active">
+  <div id="today-card">
+    <div id="tc-time">--:--:--</div>
+    <div id="tc-date">Loading...</div>
+    <div id="tc-greet">Welcome to NOVA Genesis!</div>
+    <div id="tc-status">Systems initializing...</div>
+    <div id="tc-wx"><div id="tc-wi">🌤️</div><div id="tc-wt">--°</div></div>
+  </div>
+
+  <div id="orb-sec">
+    <div id="orb-wrap" onclick="toggleMic()">
+      <div class="ring r1"></div><div class="ring r2"></div>
+      <div class="ring r3"></div><div class="ring r4"></div><div class="ring r5"></div>
+      <div id="orb">🧬</div>
+    </div>
+    <div id="orb-lbl">TAP ORB OR MIC TO SPEAK</div>
+    <div id="orb-name">NOVA GENESIS</div>
+  </div>
+
+  <div id="resp-box"><div id="nova-resp">NOVA v11 GENESIS initializing... Grant access to activate all systems!</div></div>
+  <div id="brain-lbl">⚡ SYSTEM BOOT</div>
+
+  <div id="wake-bar" onclick="toggleWake()">
+    <div id="wdot"></div>
+    <span id="wake-txt">Wake Word: OFF — Tap to enable "Hey NOVA"</span>
+  </div>
+
+  <div id="inp-row">
+    <button id="mic-btn" onclick="toggleMic()">🎤</button>
+    <input type="text" id="txt-in" placeholder="Type or speak your command..." onkeydown="if(event.key==='Enter')sendTxt()">
+    <button id="send-btn" onclick="sendTxt()">▶</button>
+  </div>
+
+  <div id="qcmds">
+    <div class="qc" onclick="rc('What time is it and what is today date')">🕐 Time</div>
+    <div class="qc" onclick="rc('Give me my complete daily briefing')">📋 Briefing</div>
+    <div class="qc" onclick="getWeather()">🌤 Weather</div>
+    <div class="qc" onclick="rc('Tell me a motivational quote')">💪 Motivate</div>
+    <div class="qc" onclick="rc('Tell me a funny joke')">😄 Joke</div>
+    <div class="qc" onclick="rc('Teach me about artificial intelligence')">🤖 Learn AI</div>
+    <div class="qc" onclick="rc('Help me learn Python basics')">🐍 Python</div>
+    <div class="qc" onclick="rc('Give me a random fascinating fact')">💡 Fact</div>
+    <div class="qc" onclick="rc('What are the latest AI technology trends')">📈 AI Trends</div>
+    <div class="qc" onclick="rc('Help me with coding problem')">💻 Code</div>
+  </div>
+
+  <div id="stats">
+    <div class="stat"><div class="stat-n" id="s-t">0</div><div class="stat-l">TASKS</div></div>
+    <div class="stat"><div class="stat-n" id="s-n">0</div><div class="stat-l">NOTES</div></div>
+    <div class="stat"><div class="stat-n" id="s-b">0</div><div class="stat-l">BRAINS</div></div>
+    <div class="stat"><div class="stat-n" id="s-m">0</div><div class="stat-l">MEMORIES</div></div>
+  </div>
+
+  <div id="brains-home-area">
+    <div class="sec-t">⚡ 10 AI BRAINS STATUS</div>
+    <div id="bh-grid"></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div id="tabs">
+  <div class="tab active" id="tab-chat" onclick="sp('chat')">💬 CHAT</div>
+  <div class="tab" id="tab-tasks" onclick="sp('tasks')">✅ TASKS</div>
+  <div class="tab" id="tab-notes" onclick="sp('notes')">📝 NOTES</div>
+  <div class="tab" id="tab-remind" onclick="sp('remind')">⏰ REMIND</div>
+  <div class="tab" id="tab-powers" onclick="sp('powers')">⚡ POWERS</div>
+  <div class="tab" id="tab-apps" onclick="sp('apps')">📱 APPS</div>
+  <div class="tab" id="tab-skills" onclick="sp('skills')">🏆 SKILLS</div>
+  <div class="tab" id="tab-memory" onclick="sp('memory')">🧠 MEMORY</div>
+  <div class="tab" id="tab-learn" onclick="sp('learn')">📚 LEARN</div>
+  <div class="tab" id="tab-brains" onclick="sp('brains')">🤖 BRAINS</div>
+  <div class="tab" id="tab-auto" onclick="sp('auto')">⚙️ AUTO</div>
+  <div class="tab" id="tab-setup" onclick="sp('setup')">🔧 SETUP</div>
+</div>
+
+<!-- PANELS -->
+<div id="panels-wrap" style="display:none;">
+
+<!-- CHAT -->
+<div id="panel-chat" class="panel active">
+  <div id="chat-msgs"></div>
+  <div style="display:flex;gap:8px;margin-bottom:10px;">
+    <button class="btn bs" style="padding:10px 12px;" onclick="toggleMic()">🎤</button>
+    <input type="text" id="cin" class="inp" style="margin:0;flex:1;" placeholder="Ask NOVA anything..." onkeydown="if(event.key==='Enter'){const v=this.value.trim();if(v){this.value='';processCmd(v);}}">
+    <button class="btn bp" onclick="const v=document.getElementById('cin').value.trim();if(v){document.getElementById('cin').value='';processCmd(v);}">▶</button>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;">
+    <div class="qc" onclick="rc('What time is it')">🕐 Time</div>
+    <div class="qc" onclick="rc('Daily briefing')">📋 Brief</div>
+    <div class="qc" onclick="rc('Tell me a joke')">😄 Joke</div>
+    <div class="qc" onclick="rc('Motivate me now')">💪 Motivate</div>
+    <div class="qc" onclick="rc('Teach me Python step by step')">🐍 Python</div>
+    <div class="qc" onclick="rc('Explain AI to me simply')">🤖 AI</div>
+    <div class="qc" onclick="rc('Help me learn Java')">☕ Java</div>
+    <div class="qc" onclick="rc('Explain C++ with examples')">⚙️ C++</div>
+  </div>
+</div>
+
+<!-- TASKS -->
+<div id="panel-tasks" class="panel">
+  <div class="sec-t">TASK MANAGER</div>
+  <div id="task-list"></div>
+  <div style="display:flex;gap:8px;margin-bottom:9px;">
+    <input type="text" id="tin" class="inp" style="margin:0;flex:1;" placeholder="Add task..." onkeydown="if(event.key==='Enter')addTask()">
+    <select id="tpri" class="inp" style="margin:0;width:85px;"><option value="low">🟢 Low</option><option value="med" selected>🟡 Med</option><option value="high">🔴 High</option></select>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn bp" onclick="addTask()">➕ ADD</button>
+    <button class="btn bs" onclick="rc('Add task: ')">🎤 Voice</button>
+    <button class="btn bd2" onclick="clearDone()">🗑 Clear Done</button>
+    <button class="btn bs" onclick="rc('Help me prioritize my tasks and give suggestions')">🤖 AI Sort</button>
+  </div>
+</div>
+
+<!-- NOTES -->
+<div id="panel-notes" class="panel">
+  <div class="sec-t">VOICE NOTE VAULT</div>
+  <div id="notes-list"></div>
+  <textarea id="nin" class="inp" style="min-height:65px;resize:none;margin-bottom:9px;" placeholder="Write a note..."></textarea>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn bp" onclick="addNote()">💾 SAVE</button>
+    <button class="btn bs" onclick="rc('Note: ')">🎤 Voice Note</button>
+    <button class="btn bs" onclick="rc('Summarize all my notes and give key points')">🤖 AI Summary</button>
+  </div>
+</div>
+
+<!-- REMINDERS -->
+<div id="panel-remind" class="panel">
+  <div class="sec-t">SMART REMINDERS</div>
+  <div id="rem-list"></div>
+  <div class="sg">
+    <div class="slb">⏰ SET NEW REMINDER</div>
+    <input type="text" id="rtxt" class="inp" placeholder="What to remind you about...">
+    <input type="number" id="rmins" class="inp" placeholder="Minutes from now (e.g. 30)" min="1">
+    <div style="display:flex;gap:8px;">
+      <button class="btn bp" onclick="addRem()">⏰ SET REMINDER</button>
+      <button class="btn bs" onclick="rc('Remind me in ')">🎤 Voice</button>
+    </div>
+  </div>
+</div>
+
+<!-- POWERS -->
+<div id="panel-powers" class="panel">
+  <div class="sec-t">14 SPECIAL POWERS</div>
+  <div id="powers-grid">
+    <div class="pb" onclick="rc('Give me my complete daily briefing with time, motivation and task summary')"><div class="pi">📋</div><div class="pn">DAILY BRIEF</div></div>
+    <div class="pb" onclick="rc('Roast me in a funny friendly way like a best friend would')"><div class="pi">🔥</div><div class="pn">ROAST ME</div></div>
+    <div class="pb" onclick="rc('Predict what kind of day I will have today with specific advice')"><div class="pi">🔮</div><div class="pn">PREDICT DAY</div></div>
+    <div class="pb" onclick="startFocus()"><div class="pi">🎯</div><div class="pn">FOCUS MODE</div></div>
+    <div class="pb" onclick="rc('Give me a genius level brain teaser challenge')"><div class="pi">🧠</div><div class="pn">GENIUS TEST</div></div>
+    <div class="pb" onclick="rc('Create a complete 90 day plan to learn AI and programming from zero to advanced')"><div class="pi">🗓️</div><div class="pn">90-DAY PLAN</div></div>
+    <div class="pb" onclick="rc('Compare two business ideas and tell which is better: social media app vs AI tutoring platform')"><div class="pi">⚔️</div><div class="pn">IDEA BATTLE</div></div>
+    <div class="pb" onclick="rc('Tell me a fascinating fact I probably do not know')"><div class="pi">💡</div><div class="pn">RANDOM FACT</div></div>
+    <div class="pb" onclick="rc('Tell me the best tech joke and explain why it is funny')"><div class="pi">😂</div><div class="pn">TECH JOKE</div></div>
+    <div class="pb" onclick="rc('Give me a powerful speech to boost my energy and focus right now')"><div class="pi">⚡</div><div class="pn">ENERGY BOOST</div></div>
+    <div class="pb" onclick="rc('Create a personalized 30 day study plan for machine learning')"><div class="pi">📚</div><div class="pn">STUDY PLAN</div></div>
+    <div class="pb" onclick="rc('Give me 5 business ideas I can start with zero money using my phone')"><div class="pi">💰</div><div class="pn">MONEY IDEAS</div></div>
+    <div class="pb" onclick="rc('Analyze what I should improve in my life and give an action plan')"><div class="pi">🌱</div><div class="pn">LIFE AUDIT</div></div>
+    <div class="pb" onclick="rc('Analyze my mood from our conversation and give personalized advice')"><div class="pi">😊</div><div class="pn">MOOD ANALYZE</div></div>
+  </div>
+</div>
+
+<!-- APPS -->
+<div id="panel-apps" class="panel">
+  <div class="sec-t">QUICK LAUNCH — 16 APPS</div>
+  <div id="apps-grid">
+    <div class="ab" onclick="oa('https://wa.me')"><div class="aico">💬</div><div class="anm">WhatsApp</div></div>
+    <div class="ab" onclick="oa('https://instagram.com')"><div class="aico">📸</div><div class="anm">Instagram</div></div>
+    <div class="ab" onclick="oa('https://youtube.com')"><div class="aico">▶️</div><div class="anm">YouTube</div></div>
+    <div class="ab" onclick="oa('https://telegram.org')"><div class="aico">✈️</div><div class="anm">Telegram</div></div>
+    <div class="ab" onclick="oa('https://gmail.com')"><div class="aico">📧</div><div class="anm">Gmail</div></div>
+    <div class="ab" onclick="oa('https://drive.google.com')"><div class="aico">💾</div><div class="anm">Drive</div></div>
+    <div class="ab" onclick="oa('https://open.spotify.com')"><div class="aico">🎵</div><div class="anm">Spotify</div></div>
+    <div class="ab" onclick="oa('https://twitter.com')"><div class="aico">🐦</div><div class="anm">X/Twitter</div></div>
+    <div class="ab" onclick="oa('https://linkedin.com')"><div class="aico">💼</div><div class="anm">LinkedIn</div></div>
+    <div class="ab" onclick="oa('https://maps.google.com')"><div class="aico">🗺️</div><div class="anm">Maps</div></div>
+    <div class="ab" onclick="oa('https://github.com')"><div class="aico">💻</div><div class="anm">GitHub</div></div>
+    <div class="ab" onclick="oa('https://translate.google.com')"><div class="aico">🌐</div><div class="anm">Translate</div></div>
+    <div class="ab" onclick="oa('https://chat.openai.com')"><div class="aico">🤖</div><div class="anm">ChatGPT</div></div>
+    <div class="ab" onclick="oa('https://claude.ai')"><div class="aico">🟠</div><div class="anm">Claude</div></div>
+    <div class="ab" onclick="oa('https://news.google.com')"><div class="aico">📰</div><div class="anm">News</div></div>
+    <div class="ab" onclick="oa('https://stackoverflow.com')"><div class="aico">🔧</div><div class="anm">StackOverflow</div></div>
+  </div>
+  <div id="wx-card">
+    <div style="font-size:32px;margin-bottom:8px;" id="wx-ico">🌤️</div>
+    <div id="wx-tmp" style="font-family:'Orbitron',monospace;font-size:24px;color:var(--p);">--°C</div>
+    <div id="wx-dsc" style="font-size:11px;color:var(--dim);margin-top:5px;">Tap button for live weather</div>
+    <button class="btn bs" style="margin-top:12px;" onclick="getWeather()">📍 GET WEATHER</button>
+  </div>
+</div>
+
+<!-- SKILLS -->
+<div id="panel-skills" class="panel">
+  <div class="sec-t">KNOWLEDGE TREE — 14 DOMAINS</div>
+  <div id="skills-list">
+    <div class="ski"><div class="skh"><span>🐍 Python</span><span style="color:var(--p)">96%</span></div><div class="skb"><div class="skf" style="width:96%"></div></div></div>
+    <div class="ski"><div class="skh"><span>🤖 Artificial Intelligence</span><span style="color:var(--p)">94%</span></div><div class="skb"><div class="skf" style="width:94%"></div></div></div>
+    <div class="ski"><div class="skh"><span>📊 Data Analysis</span><span style="color:var(--p)">92%</span></div><div class="skb"><div class="skf" style="width:92%"></div></div></div>
+    <div class="ski"><div class="skh"><span>💡 CCC Certification</span><span style="color:var(--p)">98%</span></div><div class="skb"><div class="skf" style="width:98%"></div></div></div>
+    <div class="ski"><div class="skh"><span>⚙️ C / C++</span><span style="color:var(--p)">84%</span></div><div class="skb"><div class="skf" style="width:84%"></div></div></div>
+    <div class="ski"><div class="skh"><span>☕ Java</span><span style="color:var(--p)">82%</span></div><div class="skb"><div class="skf" style="width:82%"></div></div></div>
+    <div class="ski"><div class="skh"><span>🌐 Web Development</span><span style="color:var(--p)">90%</span></div><div class="skb"><div class="skf" style="width:90%"></div></div></div>
+    <div class="ski"><div class="skh"><span>📱 Mobile Dev</span><span style="color:var(--p)">78%</span></div><div class="skb"><div class="skf" style="width:78%"></div></div></div>
+    <div class="ski"><div class="skh"><span>🔒 Cybersecurity</span><span style="color:var(--p)">76%</span></div><div class="skb"><div class="skf" style="width:76%"></div></div></div>
+    <div class="ski"><div class="skh"><span>☁️ Cloud & DevOps</span><span style="color:var(--p)">74%</span></div><div class="skb"><div class="skf" style="width:74%"></div></div></div>
+    <div class="ski"><div class="skh"><span>💰 Business & Startup</span><span style="color:var(--p)">88%</span></div><div class="skb"><div class="skf" style="width:88%"></div></div></div>
+    <div class="ski"><div class="skh"><span>🎨 UI/UX Design</span><span style="color:var(--p)">80%</span></div><div class="skb"><div class="skf" style="width:80%"></div></div></div>
+    <div class="ski"><div class="skh"><span>🧮 Mathematics</span><span style="color:var(--p)">86%</span></div><div class="skb"><div class="skf" style="width:86%"></div></div></div>
+    <div class="ski"><div class="skh"><span>🔬 Machine Learning</span><span style="color:var(--p)">91%</span></div><div class="skb"><div class="skf" style="width:91%"></div></div></div>
+  </div>
+</div>
+
+<!-- MEMORY -->
+<div id="panel-memory" class="panel">
+  <div class="sec-t">🧠 NOVA MEMORY SYSTEM</div>
+  <div style="background:var(--sur2);border:1px solid rgba(0,245,255,0.1);border-radius:12px;padding:13px;margin-bottom:13px;font-size:12px;line-height:1.7;color:var(--dim);">
+    NOVA automatically remembers facts about you from your conversations. Say "Remember that I like Python" or "My name is Rahul" and NOVA stores it permanently. This makes responses more personal over time.
+  </div>
+  <div id="mem-list"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn bs" onclick="rc('Remember that I prefer ')">➕ Add Memory</button>
+    <button class="btn bd2" onclick="clearMem()">🗑 Clear All</button>
+    <button class="btn bs" onclick="rc('What do you know about me so far')">🤖 Review</button>
+  </div>
+</div>
+
+<!-- LEARN -->
+<div id="panel-learn" class="panel">
+  <div class="sec-t">📚 LEARNING ENGINE</div>
+  <div id="learn-grid">
+    <div class="lt" onclick="rc('Teach me Python programming from scratch with examples')"><div class="ltico">🐍</div><div class="ltnm">PYTHON</div></div>
+    <div class="lt" onclick="rc('Teach me Java programming fundamentals with examples')"><div class="ltico">☕</div><div class="ltnm">JAVA</div></div>
+    <div class="lt" onclick="rc('Teach me C++ programming step by step with examples')"><div class="ltico">⚙️</div><div class="ltnm">C++</div></div>
+    <div class="lt" onclick="rc('Teach me artificial intelligence and machine learning')"><div class="ltico">🤖</div><div class="ltnm">AI / ML</div></div>
+    <div class="lt" onclick="rc('Teach me data analysis and data science basics')"><div class="ltico">📊</div><div class="ltnm">DATA SCIENCE</div></div>
+    <div class="lt" onclick="rc('Teach me web development HTML CSS JavaScript')"><div class="ltico">🌐</div><div class="ltnm">WEB DEV</div></div>
+    <div class="lt" onclick="rc('Teach me cybersecurity fundamentals and ethical hacking basics')"><div class="ltico">🔒</div><div class="ltnm">SECURITY</div></div>
+    <div class="lt" onclick="rc('Teach me all CCC computer certification exam topics')"><div class="ltico">💡</div><div class="ltnm">CCC EXAM</div></div>
+    <div class="lt" onclick="rc('Teach me cloud computing AWS Azure basics')"><div class="ltico">☁️</div><div class="ltnm">CLOUD</div></div>
+    <div class="lt" onclick="rc('Teach me how to start a business from zero with no money')"><div class="ltico">💰</div><div class="ltnm">STARTUP</div></div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <input type="text" id="learn-in" class="inp" style="margin:0;flex:1;" placeholder="Ask NOVA to teach you anything...">
+    <button class="btn bp" onclick="const v=document.getElementById('learn-in').value.trim();if(v){rc('Teach me about '+v);}">LEARN</button>
+  </div>
+</div>
+
+<!-- BRAINS -->
+<div id="panel-brains" class="panel">
+  <div class="sec-t">10 AI BRAINS — FULL STATUS</div>
+  <div id="brains-full"></div>
+  <div class="sg">
+    <div class="slb">BRAIN MODE</div>
+    <select id="brain-mode" class="inp" style="margin-bottom:8px;">
+      <option value="auto">🤖 AUTO — NOVA picks best brain</option>
+      <option value="groq">⚡ GROQ — Fastest (FREE)</option>
+      <option value="openai">🟡 OPENAI — Most Powerful</option>
+      <option value="gemini">🔵 GEMINI — Research</option>
+      <option value="claude">🟠 CLAUDE — Coding</option>
+      <option value="mistral">🌪 MISTRAL — Multilingual</option>
+      <option value="deepseek">🧬 DEEPSEEK — Logic</option>
+      <option value="together">🤝 TOGETHER — Open Source</option>
+      <option value="cohere">🌊 COHERE — Language</option>
+      <option value="perplexity">🔍 PERPLEXITY — Web Search</option>
+      <option value="huggingface">🤗 HUGGINGFACE — Free</option>
+    </select>
+    <button class="btn bp" onclick="saveBM()">SAVE MODE</button>
+  </div>
+</div>
+
+<!-- AUTO -->
+<div id="panel-auto" class="panel">
+  <div class="sec-t">AUTOMATION BUILDER</div>
+  <div id="auto-tpl">
+    <div class="pb" onclick="bAuto('YouTube Shorts daily auto-upload with AI titles and captions')"><div class="pi">▶️</div><div class="pn">YT SHORTS</div></div>
+    <div class="pb" onclick="bAuto('Instagram auto post with AI captions and trending hashtags')"><div class="pi">📸</div><div class="pn">INSTA AUTO</div></div>
+    <div class="pb" onclick="bAuto('WhatsApp smart auto reply bot for business')"><div class="pi">💬</div><div class="pn">WA BOT</div></div>
+    <div class="pb" onclick="bAuto('Automated daily study plan with reminders and tracking')"><div class="pi">📚</div><div class="pn">STUDY BOT</div></div>
+    <div class="pb" onclick="bAuto('Email auto organizer and smart reply using AI')"><div class="pi">📧</div><div class="pn">EMAIL AUTO</div></div>
+    <div class="pb" onclick="bAuto('Multi-platform social media cross posting automation')"><div class="pi">🌐</div><div class="pn">SOCIAL AUTO</div></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:8px;">
+    <input type="text" id="auto-in" class="inp" style="margin:0;flex:1;" placeholder="Describe your automation...">
+    <button class="btn bp" onclick="bAutoCustom()">BUILD</button>
+  </div>
+  <div id="auto-out">Automation Engine ready. Select template or describe your own idea above.</div>
+</div>
+
+<!-- SETUP -->
+<div id="panel-setup" class="panel">
+  <div class="sec-t">👤 OWNER PROFILE</div>
+  <div class="sg">
+    <div class="slb">YOUR NAME</div>
+    <input type="text" id="own-name" class="inp" placeholder="Enter your name...">
+    <button class="btn bp" onclick="setOwner()">SET AS OWNER</button>
+  </div>
+
+  <div class="sec-t">🧠 AI BRAIN KEYS</div>
+  <div class="sg" style="border-color:rgba(0,255,136,0.2);">
+    <div class="slb" style="color:var(--ok);">⚡ GROQ — 100% FREE — START HERE ⭐</div>
+    <div style="font-size:10px;color:var(--ok);margin-bottom:7px;">🔗 console.groq.com → Sign Up → API Keys → Create API Key</div>
+    <input type="password" id="k-groq" class="inp" placeholder="gsk_...">
+    <button class="btn bg2" onclick="saveKey('groq')">💾 SAVE GROQ KEY</button>
+  </div>
+  <div class="sg"><div class="slb">🔵 GEMINI (Google — Free)</div><div style="font-size:10px;color:var(--dim);margin-bottom:6px;">🔗 aistudio.google.com/app/apikey</div><input type="password" id="k-gemini" class="inp" placeholder="AIza..."><button class="btn bg2" onclick="saveKey('gemini')">💾 SAVE</button></div>
+  <div class="sg"><div class="slb">🟠 CLAUDE (Anthropic)</div><div style="font-size:10px;color:var(--dim);margin-bottom:6px;">🔗 console.anthropic.com → API Keys</div><input type="password" id="k-claude" class="inp" placeholder="sk-ant-..."><button class="btn bg2" onclick="saveKey('claude')">💾 SAVE</button></div>
+  <div class="sg"><div class="slb">🟡 OPENAI (GPT-4)</div><div style="font-size:10px;color:var(--dim);margin-bottom:6px;">🔗 platform.openai.com/api-keys</div><input type="password" id="k-openai" class="inp" placeholder="sk-..."><button class="btn bg2" onclick="saveKey('openai')">💾 SAVE</button></div>
+  <div class="sg"><div class="slb">🌪 MISTRAL (Free)</div><div style="font-size:10px;color:var(--dim);margin-bottom:6px;">🔗 console.mistral.ai</div><input type="password" id="k-mistral" class="inp" placeholder="..."><button class="btn bg2" onclick="saveKey('mistral')">💾 SAVE</button></div>
+  <div class="sg"><div class="slb">🧬 DEEPSEEK (Cheap)</div><div style="font-size:10px;color:var(--dim);margin-bottom:6px;">🔗 platform.deepseek.com</div><input type="password" id="k-deepseek" class="inp" placeholder="sk-..."><button class="btn bg2" onclick="saveKey('deepseek')">💾 SAVE</button></div>
+  <div class="sg"><div class="slb">🤝 TOGETHER AI ($25 Free)</div><div style="font-size:10px;color:var(--dim);margin-bottom:6px;">🔗 api.together.xyz</div><input type="password" id="k-together" class="inp" placeholder="..."><button class="btn bg2" onclick="saveKey('together')">💾 SAVE</button></div>
+  <div class="sg"><div class="slb">🌊 COHERE</div><div style="font-size:10px;color:var(--dim);margin-bottom:6px;">🔗 dashboard.cohere.com</div><input type="password" id="k-cohere" class="inp" placeholder="..."><button class="btn bg2" onclick="saveKey('cohere')">💾 SAVE</button></div>
+  <div class="sg"><div class="slb">🔍 PERPLEXITY</div><div style="font-size:10px;color:var(--dim);margin-bottom:6px;">🔗 perplexity.ai/settings/api</div><input type="password" id="k-perplexity" class="inp" placeholder="pplx-..."><button class="btn bg2" onclick="saveKey('perplexity')">💾 SAVE</button></div>
+  <div class="sg"><div class="slb">🤗 HUGGINGFACE (Free)</div><div style="font-size:10px;color:var(--dim);margin-bottom:6px;">🔗 huggingface.co/settings/tokens</div><input type="password" id="k-huggingface" class="inp" placeholder="hf_..."><button class="btn bg2" onclick="saveKey('huggingface')">💾 SAVE</button></div>
+
+  <div class="sec-t">🔊 VOICE</div>
+  <div class="sg">
+    <div class="slb">SELECT JARVIS-STYLE VOICE</div>
+    <select id="vsel" class="inp" onchange="saveVoice()"><option value="">Loading voices...</option></select>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn bs" onclick="testVoice()">🔊 TEST</button>
+      <button class="btn bs" onclick="initVoices()">🔄 RELOAD</button>
+    </div>
+  </div>
+
+  <div class="sec-t">🎨 THEMES</div>
+  <div id="themes-row">
+    <div class="tc2 active" onclick="setTheme('cyan',this)" style="border-color:#00f5ff;color:#00f5ff;">CYAN</div>
+    <div class="tc2" onclick="setTheme('red',this)" style="border-color:#ff3366;color:#ff3366;">CRIMSON</div>
+    <div class="tc2" onclick="setTheme('gold',this)" style="border-color:#ffcc00;color:#ffcc00;">GOLD</div>
+    <div class="tc2" onclick="setTheme('violet',this)" style="border-color:#9b59b6;color:#9b59b6;">VIOLET</div>
+    <div class="tc2" onclick="setTheme('green',this)" style="border-color:#00ff88;color:#00ff88;">MATRIX</div>
+    <div class="tc2" onclick="setTheme('pink',this)" style="border-color:#ff69b4;color:#ff69b4;">SAKURA</div>
+  </div>
+
+  <div class="sec-t">⚙️ SYSTEM</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+    <button class="btn bs" onclick="toggleBG()">🔄 BACKGROUND</button>
+    <button class="btn bw" onclick="toggleWake()">👂 WAKE WORD</button>
+    <button class="btn bs" onclick="exportData()">📤 EXPORT</button>
+    <button class="btn bd2" onclick="clearAll()">🗑 CLEAR ALL</button>
+  </div>
+</div>
+
+</div><!-- end panels-wrap -->
+
+<div id="notif"></div>
+
+<!-- BOTTOM NAV -->
+<div id="bnav">
+  <button class="nb active" id="nb-home" onclick="goHome()"><div class="nbi">🏠</div><span class="nbl">HOME</span></button>
+  <button class="nb" id="nb-chat" onclick="goPanel('chat')"><div class="nbi">💬</div><span class="nbl">CHAT</span></button>
+  <button class="nb" id="nb-tasks" onclick="goPanel('tasks')"><div class="nbi">✅</div><span class="nbl">TASKS</span></button>
+  <button class="nb" id="nb-powers" onclick="goPanel('powers')"><div class="nbi">⚡</div><span class="nbl">POWERS</span></button>
+  <button class="nb" id="nb-setup" onclick="goPanel('setup')"><div class="nbi">🔧</div><span class="nbl">SETUP</span></button>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// NOVA v11 GENESIS — COMPLETE ENGINE
+// ═══════════════════════════════════════
+
+// PWA INSTALL
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  setTimeout(() => document.getElementById('install-banner').classList.add('show'), 3000);
+});
+
+function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(r => {
+      if (r.outcome === 'accepted') notif('✅ NOVA installed as app!');
+      document.getElementById('install-banner').classList.remove('show');
+      deferredPrompt = null;
+    });
+  } else {
+    notif('📋 Chrome menu (⋮) → Share → Add to Home Screen');
+  }
+}
+
+// SERVICE WORKER
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').then(() => console.log('SW registered')).catch(() => {});
+}
+
+// 10 AI BRAINS
+const BRAINS = {
+  groq:       {n:'GROQ',       m:'llama3-70b-8192',                    u:'https://api.groq.com/openai/v1/chat/completions',                           t:'oai'},
+  openai:     {n:'OPENAI',     m:'gpt-4o-mini',                        u:'https://api.openai.com/v1/chat/completions',                                t:'oai'},
+  mistral:    {n:'MISTRAL',    m:'mistral-small-latest',               u:'https://api.mistral.ai/v1/chat/completions',                                t:'oai'},
+  deepseek:   {n:'DEEPSEEK',   m:'deepseek-chat',                      u:'https://api.deepseek.com/v1/chat/completions',                              t:'oai'},
+  together:   {n:'TOGETHER',   m:'meta-llama/Llama-3-8b-chat-hf',      u:'https://api.together.xyz/v1/chat/completions',                              t:'oai'},
+  perplexity: {n:'PERPLEXITY', m:'llama-3.1-sonar-small-128k-online',  u:'https://api.perplexity.ai/chat/completions',                               t:'oai'},
+  cohere:     {n:'COHERE',     m:'command-r',                          u:'https://api.cohere.ai/v2/chat',                                             t:'cohere'},
+  claude:     {n:'CLAUDE',     m:'claude-3-haiku-20240307',            u:'https://api.anthropic.com/v1/messages',                                     t:'claude'},
+  gemini:     {n:'GEMINI',     m:'gemini-1.5-flash',                   u:k=>`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${k}`, t:'gemini'},
+  huggingface:{n:'HUGGING',    m:'HuggingFaceH4/zephyr-7b-beta',      u:'https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta',  t:'hf'}
+};
+const oaiH = k => ({'Content-Type':'application/json','Authorization':'Bearer '+k});
+
+// STATE
+const S = {
+  owner:'', keys:{}, tasks:[], notes:[], reminders:[], memories:[],
+  voiceName:'', theme:'cyan', bgMode:false, micOn:false,
+  recog:null, wl:null, permed:false, hist:[], brainMode:'auto',
+  wakeOn:false, wakeRecog:null
+};
+
+// ═══════════════ INIT ═══════════════
+window.addEventListener('load', () => {
+  loadS(); initVoices(); updateBadge();
+  renderBrainsHome(); renderBrainsFull();
+  battMon(); moodPulse(); clockTick();
+  renderTasks(); renderNotes(); renderRem(); renderMem();
+  updateStats();
+  if (!S.permed) setTimeout(() => document.getElementById('pm').classList.add('show'), 600);
+  else greet();
+});
+
+// ═══════════════ PERMISSIONS ═══════════════
+function grantPerm() {
+  document.getElementById('pm').classList.remove('show');
+  S.permed = true; saveS();
+  if (navigator.mediaDevices) navigator.mediaDevices.getUserMedia({audio:true}).then(() => notif('✅ Microphone ready!')).catch(() => notif('⚠️ Mic denied — text mode active'));
+  if ('Notification' in window) Notification.requestPermission();
+  greet();
+}
+function denyPerm() { document.getElementById('pm').classList.remove('show'); S.permed = true; saveS(); greet(); }
+
+// ═══════════════ GREET ═══════════════
+function greet() {
+  const name = S.owner || 'friend';
+  const h = new Date().getHours();
+  const tg = h<5?'Good night':h<12?'Good morning':h<17?'Good afternoon':h<21?'Good evening':'Good night';
+  const cb = activeBrains();
+  const msg = cb.length > 0
+    ? `${tg}, ${name}! I am NOVA Genesis with ${cb.length} AI brain${cb.length>1?'s':''} active — ${cb.map(k=>k.toUpperCase()).join(', ')}. All systems online. How can I help you?`
+    : `${tg}, ${name}! I am NOVA v11 Genesis. Go to 🔧 SETUP and add your FREE Groq key from console.groq.com to activate my brain. Only 2 minutes!`;
+  setResp(msg, 'GENESIS'); speak(msg);
+  document.getElementById('tc-greet').textContent = `${tg}, ${name}! Ready to conquer today?`;
+  document.getElementById('tc-status').textContent = cb.length > 0 ? `${cb.length} AI brain${cb.length>1?'s':''} active` : 'Add Groq key in Setup to activate';
+}
+const activeBrains = () => Object.keys(S.keys).filter(k => S.keys[k] && S.keys[k].length > 4);
+
+// ═══════════════ CLOCK ═══════════════
+function clockTick() {
+  const tick = () => {
+    const now = new Date();
+    const el = document.getElementById('tc-time'); if(el) el.textContent = now.toLocaleTimeString();
+    const el2 = document.getElementById('tc-date'); if(el2) el2.textContent = now.toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    document.getElementById('live-t').textContent = now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  };
+  tick(); setInterval(tick, 1000);
+}
+
+// ═══════════════ VOICES ═══════════════
+function initVoices() {
+  if (!window.speechSynthesis) return;
+  const tryLoad = () => {
+    const v = speechSynthesis.getVoices();
+    if (v.length > 0) { fillVSel(v); return true; } return false;
+  };
+  if (!tryLoad()) {
+    speechSynthesis.onvoiceschanged = () => tryLoad();
+    let n=0; const iv=setInterval(()=>{n++;if(tryLoad()||n>60)clearInterval(iv);},200);
+  }
+}
+function fillVSel(voices) {
+  const sel = document.getElementById('vsel'); if(!sel) return;
+  sel.innerHTML = '<option value="">— Choose voice —</option>';
+  voices.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v.name; o.textContent = `${v.name} (${v.lang})`;
+    if (v.name === S.voiceName) o.selected = true;
+    sel.appendChild(o);
+  });
+  if (!S.voiceName) {
+    const best = voices.find(v => /(uk english male|david|daniel|alex|google uk)/i.test(v.name) && v.lang.startsWith('en'));
+    if (best) { S.voiceName = best.name; sel.value = best.name; saveS(); }
+  }
+}
+function saveVoice() { const v = document.getElementById('vsel').value; S.voiceName = v; saveS(); if(v) notif('✅ Voice: '+v); }
+function testVoice() {
+  S.voiceName = document.getElementById('vsel').value || S.voiceName;
+  if (!speechSynthesis.getVoices().length) { notif('⚠️ Tap RELOAD then try again'); return; }
+  speak('Hello! I am NOVA Genesis, your personal AI assistant. All systems are operational and I am ready to assist you!', true);
+}
+function speak(text, force) {
+  if (!window.speechSynthesis) return;
+  try { speechSynthesis.cancel(); } catch(e) {}
+  const go = () => {
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate=0.9; u.pitch=0.8; u.volume=1;
+      const vv = speechSynthesis.getVoices();
+      if (vv.length && S.voiceName) { const fv = vv.find(v=>v.name===S.voiceName); if(fv) u.voice=fv; }
+      u.onstart = () => { orbSet('speaking','🔊','SPEAKING...'); setMood(92,78,72); };
+      u.onend = () => { orbSet('','🧬','READY'); setMood(72,85,62); };
+      speechSynthesis.speak(u);
+    } catch(e) {}
+  };
+  if (speechSynthesis.getVoices().length > 0 || force) go();
+  else { let t=0; const iv=setInterval(()=>{t++;if(speechSynthesis.getVoices().length>0||t>30){clearInterval(iv);go();}},150); }
+}
+
+// ═══════════════ WAKE WORD ═══════════════
+function toggleWake() {
+  if (S.wakeOn) {
+    if (S.wakeRecog) try{S.wakeRecog.stop();}catch(e){}
+    S.wakeOn=false; updateWakeUI(); notif('Wake word disabled');
+  } else {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { notif('⚠️ Wake word requires mic permission'); return; }
+    try {
+      S.wakeRecog = new SR();
+      S.wakeRecog.continuous=true; S.wakeRecog.interimResults=false; S.wakeRecog.lang='en-US';
+      S.wakeRecog.onresult = e => {
+        const t = e.results[e.results.length-1][0].transcript.toLowerCase();
+        if (t.includes('hey nova') || t.includes('nova activate') || t.includes('ok nova')) {
+          orbSet('wake','⚡','WAKE WORD!');
+          notif('👂 "Hey NOVA" detected! Listening...');
+          speak('Yes? I am listening!');
+          setTimeout(() => startMic(), 1600);
+        }
+      };
+      S.wakeRecog.onerror = () => { S.wakeOn=false; updateWakeUI(); };
+      S.wakeRecog.onend = () => { if(S.wakeOn) try{S.wakeRecog.start();}catch(e){} };
+      S.wakeRecog.start();
+      S.wakeOn=true; updateWakeUI();
+      notif('👂 Wake word ON — Say "Hey NOVA" anytime!');
+    } catch(e) { notif('⚠️ '+e.message); }
+  }
+}
+function updateWakeUI() {
+  const txt = document.getElementById('wake-txt');
+  const st = document.getElementById('wake-st');
+  if (S.wakeOn) {
+    if(txt) txt.textContent='Wake Word: ON — Say "Hey NOVA" anytime!';
+    if(st){st.textContent='ON';st.style.color='var(--ok)';}
+  } else {
+    if(txt) txt.textContent='Wake Word: OFF — Tap to enable "Hey NOVA"';
+    if(st){st.textContent='OFF';st.style.color='var(--dim)';}
+  }
+}
+
+// ═══════════════ MIC ═══════════════
+function toggleMic() { S.micOn ? stopMic() : startMic(); }
+function startMic() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { notif('⚠️ Voice not supported on this browser — use text'); return; }
+  try {
+    S.recog = new SR();
+    S.recog.lang='en-US'; S.recog.interimResults=true; S.recog.continuous=false;
+    S.recog.onstart = () => { S.micOn=true; document.getElementById('mic-btn').classList.add('on'); orbSet('listening','👂','LISTENING...'); setMood(55,98,90); };
+    S.recog.onresult = e => {
+      let t=''; for(let i=e.resultIndex;i<e.results.length;i++) t+=e.results[i][0].transcript;
+      document.getElementById('txt-in').value = t;
+      if (e.results[e.results.length-1].isFinal) processCmd(t);
+    };
+    S.recog.onerror = e => { stopMic(); if(e.error!=='aborted') notif('⚠️ Mic: '+e.error); };
+    S.recog.onend = () => stopMic();
+    S.recog.start();
+  } catch(e) { notif('⚠️ Mic error: '+e.message); }
+}
+function stopMic() {
+  S.micOn=false;
+  document.getElementById('mic-btn').classList.remove('on');
+  orbSet('','🧬','READY');
+  try { if(S.recog) S.recog.stop(); } catch(e) {}
+}
+
+// ═══════════════ COMMANDS ═══════════════
+function sendTxt() { const v=document.getElementById('txt-in').value.trim(); if(!v)return; document.getElementById('txt-in').value=''; processCmd(v); }
+function rc(cmd) { goHome(); processCmd(cmd); }
+
+async function processCmd(text) {
+  if (!text) return;
+  const lo = text.toLowerCase();
+  addChatMsg(text, 'user');
+  setResp('<div class="typing"><span></span><span></span><span></span></div>', 'THINKING');
+  orbSet('thinking','💭','THINKING...');
+
+  // MEMORY AUTO-LEARN
+  if (/remember that|my name is|i prefer|i like|i am a|i study|i work/i.test(lo)) {
+    S.memories.push({type:'USER FACT', content:text, time:new Date().toLocaleString()});
+    if (S.memories.length > 60) S.memories = S.memories.slice(-60);
+    saveS(); renderMem(); updateStats();
+    document.getElementById('mmb').style.width = Math.min(100, S.memories.length * 5) + '%';
+  }
+
+  // LOCAL COMMANDS — instant, no API needed
+  if (/\btime\b/.test(lo) && !/remind/.test(lo)) return reply(new Date().toLocaleTimeString(), 'LOCAL');
+  if (/\bdate|today\b/.test(lo) && !/remind/.test(lo)) return reply(new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'}), 'LOCAL');
+
+  if (/add task[:\s]/i.test(lo)) {
+    const t = text.replace(/add task[:\s]*/i,'').trim();
+    if (t) { S.tasks.push({id:Date.now(),text:t,done:false,pri:'med'}); saveS(); renderTasks(); updateStats(); return reply(`Task added: "${t}" ✅`, 'LOCAL'); }
+  }
+  if (/^note[:\s]/i.test(lo) || /save note[:\s]/i.test(lo)) {
+    const t = text.replace(/^note[:\s]*/i,'').replace(/save note[:\s]*/i,'').trim();
+    if (t) { S.notes.push({id:Date.now(),text:t,time:new Date().toLocaleString()}); saveS(); renderNotes(); updateStats(); return reply(`Note saved: "${t}" 📝`, 'LOCAL'); }
+  }
+  const remMatch = lo.match(/remind me in (\d+)\s*(minute|min|hour|hr|second|sec)/i);
+  if (remMatch) {
+    const n=parseInt(remMatch[1]), u=remMatch[2];
+    const ms = n*(u.startsWith('h')?3600000:u.startsWith('s')?1000:60000);
+    const rt = text.replace(/remind me in \d+\s*(minute|min|hour|hr|second|sec)s?/i,'').replace(/^to\s*/i,'').trim() || 'Reminder!';
+    schedRem(rt, ms); return reply(`Reminder set: "${rt}" in ${n} ${u}${n>1?'s':''} ⏰`, 'LOCAL');
+  }
+
+  // APP OPENS
+  const apps = {whatsapp:'https://wa.me',youtube:'https://youtube.com',instagram:'https://instagram.com',gmail:'https://gmail.com',telegram:'https://telegram.org',spotify:'https://open.spotify.com',maps:'https://maps.google.com',twitter:'https://twitter.com',github:'https://github.com',linkedin:'https://linkedin.com'};
+  for (const [app, url] of Object.entries(apps)) {
+    if (lo.includes('open '+app) || lo.includes('launch '+app)) { oa(url); return reply(`Opening ${app.charAt(0).toUpperCase()+app.slice(1)}! 🚀`, 'LOCAL'); }
+  }
+  if (/\bweather\b/.test(lo)) { getWeather(); return reply('Fetching live weather — check Apps tab!', 'LOCAL'); }
+  if (/\bbattery\b/.test(lo)) return reply(`Battery: ${document.getElementById('batt').textContent}`, 'LOCAL');
+  if (/focus mode/i.test(lo)) { startFocus(); return; }
+  if (/^search\s+/i.test(lo)) { const q=text.replace(/^search\s+/i,''); oa('https://www.google.com/search?q='+encodeURIComponent(q)); return reply(`Searching: "${q}" 🔍`, 'LOCAL'); }
+
+  // AI BRAIN CALL
+  const resp = await callAI(text);
+  reply(resp || `Add FREE Groq key in 🔧 SETUP → console.groq.com`, activeBrains()[0]||'OFFLINE');
+}
+
+function reply(text, brain) {
+  orbSet('','🧬','READY'); setResp(text, brain||'AI'); addChatMsg(text,'nova'); speak(text); setMood(76,82,66);
+}
+
+// ═══════════════ AI BRAINS ═══════════════
+function sysPrompt() {
+  const mems = S.memories.slice(-5).map(m=>m.content).join('; ');
+  return `You are NOVA Genesis — a brilliant personal AI assistant with confidence, warmth, and intelligence like Jarvis from Iron Man. Owner: ${S.owner||'friend'}. ${mems?'Known facts: '+mems+'.':''} Keep replies helpful and conversational (2-5 sentences). For code give working examples. Be personal.`;
+}
+
+async function callAI(prompt) {
+  const order = S.brainMode==='auto' ? ['groq','openai','gemini','claude','mistral','deepseek','together','perplexity','cohere','huggingface'] : [S.brainMode,...Object.keys(BRAINS).filter(b=>b!==S.brainMode)];
+  for (const bid of order) {
+    const key = S.keys[bid]; if (!key||key.length<4) continue;
+    try {
+      const b = BRAINS[bid]; let res = null;
+      if (b.t==='oai') res = await callOAI(bid,key,prompt);
+      else if (b.t==='gemini') res = await callGemini(key,prompt);
+      else if (b.t==='claude') res = await callClaude(key,prompt);
+      else if (b.t==='cohere') res = await callCohere(key,prompt);
+      else if (b.t==='hf') res = await callHF(key,prompt);
+      if (res&&res.length>2) { document.getElementById('brain-lbl').textContent='⚡ BRAIN: '+BRAINS[bid].n; return res; }
+    } catch(e) { console.log(bid,'err:',e.message); }
+  }
+  return null;
+}
+
+async function callOAI(bid,key,prompt) {
+  const b=BRAINS[bid];
+  const r=await fetch(b.u,{method:'POST',headers:oaiH(key),body:JSON.stringify({model:b.m,messages:[{role:'system',content:sysPrompt()},...S.hist.slice(-6),{role:'user',content:prompt}],max_tokens:600,temperature:0.75})});
+  if(!r.ok) throw new Error(r.status);
+  const d=await r.json(); const t=d.choices?.[0]?.message?.content||'';
+  if(t) pushH(prompt,t); return t;
+}
+async function callGemini(key,prompt) {
+  const r=await fetch(BRAINS.gemini.u(key),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:sysPrompt()+'\n\nUser: '+prompt}]}],generationConfig:{maxOutputTokens:600,temperature:0.75}})});
+  if(!r.ok) throw new Error(r.status);
+  const d=await r.json(); const t=d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  if(t) pushH(prompt,t); return t;
+}
+async function callClaude(key,prompt) {
+  const r=await fetch(BRAINS.claude.u,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:BRAINS.claude.m,max_tokens:600,system:sysPrompt(),messages:[...S.hist.slice(-6),{role:'user',content:prompt}]})});
+  if(!r.ok) throw new Error(r.status);
+  const d=await r.json(); const t=d.content?.[0]?.text||'';
+  if(t) pushH(prompt,t); return t;
+}
+async function callCohere(key,prompt) {
+  const r=await fetch(BRAINS.cohere.u,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:BRAINS.cohere.m,messages:[{role:'system',content:sysPrompt()},{role:'user',content:prompt}],max_tokens:600})});
+  if(!r.ok) throw new Error(r.status);
+  const d=await r.json(); const t=d.message?.content?.[0]?.text||'';
+  if(t) pushH(prompt,t); return t;
+}
+async function callHF(key,prompt) {
+  const r=await fetch(BRAINS.huggingface.u,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({inputs:sysPrompt()+'\nUser: '+prompt+'\nNOVA:',parameters:{max_new_tokens:400,temperature:0.75}})});
+  if(!r.ok) throw new Error(r.status);
+  const d=await r.json(); return Array.isArray(d)?d[0]?.generated_text?.split('NOVA:').pop()?.trim()||'':d.generated_text||'';
+}
+function pushH(u,a){S.hist.push({role:'user',content:u},{role:'assistant',content:a});if(S.hist.length>24)S.hist=S.hist.slice(-24);}
+
+// ═══════════════ TASKS ═══════════════
+function addTask(){const v=document.getElementById('tin')?.value.trim();if(!v)return;const p=document.getElementById('tpri')?.value||'med';S.tasks.push({id:Date.now(),text:v,done:false,pri:p});document.getElementById('tin').value='';saveS();renderTasks();updateStats();notif('✅ Task added!');}
+function toggleTask(id){const t=S.tasks.find(t=>t.id===id);if(t){t.done=!t.done;saveS();renderTasks();}}
+function removeTask(id){S.tasks=S.tasks.filter(t=>t.id!==id);saveS();renderTasks();updateStats();}
+function clearDone(){S.tasks=S.tasks.filter(t=>!t.done);saveS();renderTasks();updateStats();notif('🗑 Done cleared');}
+function renderTasks(){
+  const l=document.getElementById('task-list');if(!l)return;
+  if(!S.tasks.length){l.innerHTML='<div style="color:var(--dim);font-size:12px;text-align:center;padding:14px;">No tasks. Say "Add task: your task" or type above.</div>';return;}
+  l.innerHTML=S.tasks.map(t=>`<div class="ti"><div class="tpbar ${t.pri||'med'}"></div><div class="tck ${t.done?'done':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div><div class="${t.done?'tdone':''}" style="flex:1">${t.text}</div><div onclick="removeTask(${t.id})" style="color:var(--danger);cursor:pointer;font-size:16px;">✕</div></div>`).join('');
+}
+
+// ═══════════════ NOTES ═══════════════
+function addNote(){const v=document.getElementById('nin')?.value.trim();if(!v)return;S.notes.push({id:Date.now(),text:v,time:new Date().toLocaleString()});document.getElementById('nin').value='';saveS();renderNotes();updateStats();notif('📝 Note saved!');}
+function removeNote(id){S.notes=S.notes.filter(n=>n.id!==id);saveS();renderNotes();updateStats();}
+function renderNotes(){
+  const l=document.getElementById('notes-list');if(!l)return;
+  if(!S.notes.length){l.innerHTML='<div style="color:var(--dim);font-size:12px;text-align:center;padding:14px;">No notes. Say "Note: your note" or type above.</div>';return;}
+  l.innerHTML=S.notes.map(n=>`<div class="ni"><div style="display:flex;justify-content:space-between"><div style="flex:1">${n.text}</div><div onclick="removeNote(${n.id})" style="color:var(--danger);cursor:pointer;margin-left:8px;">✕</div></div><div class="nt">📅 ${n.time}</div></div>`).join('');
+}
+
+// ═══════════════ REMINDERS ═══════════════
+function addRem(){const txt=document.getElementById('rtxt')?.value.trim();const mins=parseInt(document.getElementById('rmins')?.value)||0;if(!txt||!mins){notif('⚠️ Enter text and minutes');return;}schedRem(txt,mins*60000);document.getElementById('rtxt').value='';document.getElementById('rmins').value='';}
+function schedRem(text,ms){
+  const r={id:Date.now(),text,time:new Date(Date.now()+ms).toLocaleTimeString()};
+  S.reminders.push(r);saveS();renderRem();
+  setTimeout(()=>{notif('⏰ '+text);speak('Attention! Reminder: '+text);if(Notification.permission==='granted')try{new Notification('NOVA',{body:text,icon:'./icon.svg'});}catch(e){}S.reminders=S.reminders.filter(x=>x.id!==r.id);saveS();renderRem();},ms);
+}
+function cancelRem(id){S.reminders=S.reminders.filter(r=>r.id!==id);saveS();renderRem();notif('Reminder cancelled');}
+function renderRem(){
+  const l=document.getElementById('rem-list');if(!l)return;
+  l.innerHTML=S.reminders.length?S.reminders.map(r=>`<div class="ri"><div><div style="font-size:13px;">${r.text}</div><div style="font-size:9px;color:var(--s);">⏰ ${r.time}</div></div><div onclick="cancelRem(${r.id})" style="color:var(--danger);cursor:pointer;font-size:16px;">✕</div></div>`).join(''):'<div style="color:var(--dim);font-size:12px;text-align:center;padding:14px;">No active reminders.</div>';
+}
+
+// ═══════════════ MEMORY ═══════════════
+function clearMem(){if(confirm('Clear all memories?')){S.memories=[];saveS();renderMem();updateStats();notif('🧠 Memory cleared');}}
+function renderMem(){
+  const l=document.getElementById('mem-list');if(!l)return;
+  if(!S.memories.length){l.innerHTML='<div style="color:var(--dim);font-size:12px;text-align:center;padding:14px;">No memories yet. Say "Remember that I like Python" to add one.</div>';return;}
+  l.innerHTML=S.memories.map(m=>`<div class="mli"><div class="mlt">${m.type}</div><div class="mld">${m.content}</div><div class="mlts">📅 ${m.time}</div></div>`).join('');
+}
+
+// ═══════════════ WEATHER ═══════════════
+function oa(url){window.open(url,'_blank');}
+function getWeather(){
+  if(!navigator.geolocation){notif('⚠️ Location not available');return;}
+  navigator.geolocation.getCurrentPosition(async p=>{
+    try{
+      const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${p.coords.latitude}&longitude=${p.coords.longitude}&current_weather=true`);
+      const d=await r.json();
+      if(d.current_weather){
+        const icons={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',51:'🌦️',61:'🌧️',71:'❄️',80:'🌧️',95:'⛈️'};
+        const icon=icons[d.current_weather.weathercode]||'🌤️';
+        const temp=d.current_weather.temperature;
+        ['wx-ico','tc-wi'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=icon;});
+        ['wx-tmp','tc-wt'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=temp+'°C';});
+        if(document.getElementById('wx-dsc'))document.getElementById('wx-dsc').textContent=`Wind: ${d.current_weather.windspeed} km/h`;
+        reply(`It is ${temp}°C, wind ${d.current_weather.windspeed} km/h.`,'WEATHER');
+      }
+    }catch(e){notif('⚠️ Could not fetch weather');}
+  },()=>notif('⚠️ Allow location for weather'));
+}
+
+// ═══════════════ POWERS ═══════════════
+function startFocus(){
+  notif('🎯 Focus Mode — 25 minutes!');
+  reply('Focus mode activated! Silencing for 25 minutes. Stay concentrated — you can do this! I will notify you when done.','NOVA');
+  document.getElementById('orb-lbl').textContent='🎯 FOCUS — 25 MIN';
+  setMood(40,100,80);
+  setTimeout(()=>{speak('Excellent! 25 minutes complete. Take a 5 minute break now!');notif('✅ Focus done! Take a break.');document.getElementById('orb-lbl').textContent='TAP ORB OR MIC TO SPEAK';},25*60*1000);
+}
+
+// ═══════════════ AUTOMATION ═══════════════
+function bAuto(t){document.getElementById('auto-in').value=t;bAutoCustom();}
+async function bAutoCustom(){
+  const t=document.getElementById('auto-in')?.value.trim();if(!t){notif('⚠️ Enter an idea');return;}
+  document.getElementById('auto-out').textContent='⚡ Building automation plan...';
+  const r=await callAI(`Create a detailed automation plan for: "${t}"\n\nInclude:\nOVERVIEW: (2 lines)\nTOOLS: (list)\nSTEPS: (numbered)\nSTARTER CODE: (working snippet)\nSETUP TIME: (estimate)\n\nBe specific and practical.`);
+  document.getElementById('auto-out').textContent=r||'Add Groq API key in Setup to generate automation plans for free!';
+}
+
+// ═══════════════ SETUP ═══════════════
+function setOwner(){
+  const n=document.getElementById('own-name')?.value.trim();if(!n){notif('⚠️ Enter your name');return;}
+  S.owner=n;saveS();
+  document.getElementById('tc-greet').textContent=`Welcome back, ${n}! Ready to conquer today?`;
+  notif('✅ Owner: '+n);
+  speak(`Hello ${n}! I am NOVA Genesis. Fully activated and ready to assist you. It is great to meet you!`);
+}
+
+function saveKey(bid){
+  const el=document.getElementById('k-'+bid);if(!el)return;
+  const k=el.value.trim();if(!k||k.length<4){notif('⚠️ Enter a valid API key');return;}
+  S.keys[bid]=k;saveS();updateBadge();renderBrainsHome();renderBrainsFull();updateStats();
+  notif(`✅ ${bid.toUpperCase()} brain activated!`);
+  speak(`${bid.toUpperCase()} brain connected! I am now more powerful and ready to answer your questions!`);
+}
+
+function saveBM(){S.brainMode=document.getElementById('brain-mode').value;saveS();notif('✅ Brain mode: '+S.brainMode.toUpperCase());}
+
+function setTheme(t,el){
+  const map={cyan:'#00f5ff',red:'#ff3366',gold:'#ffcc00',violet:'#9b59b6',green:'#00ff88',pink:'#ff69b4'};
+  const c=map[t];if(!c)return;
+  document.documentElement.style.setProperty('--p',c);
+  S.theme=t;saveS();
+  document.querySelectorAll('.tc2').forEach(x=>x.classList.remove('active'));
+  if(el)el.classList.add('active');
+  notif('🎨 Theme: '+t.toUpperCase());
+}
+
+async function toggleBG(){
+  if(!S.bgMode){
+    if('wakeLock'in navigator){
+      try{S.wl=await navigator.wakeLock.request('screen');S.bgMode=true;document.getElementById('bg-led').style.color='var(--ok)';notif('✅ Background mode ON');}
+      catch(e){notif('⚠️ Settings → Apps → Chrome → Battery → No Restrictions');}
+    }else notif('⚠️ Settings → Apps → Chrome → Battery → No Restrictions');
+  }else{
+    if(S.wl)try{await S.wl.release();}catch(e){}
+    S.bgMode=false;document.getElementById('bg-led').style.color='var(--dim)';notif('Background mode OFF');
+  }
+}
+
+function clearAll(){if(confirm('Clear ALL data?')){S.tasks=[];S.notes=[];S.reminders=[];S.hist=[];S.memories=[];saveS();renderTasks();renderNotes();renderRem();renderMem();updateStats();notif('🗑 All cleared');}}
+function exportData(){const d=JSON.stringify({tasks:S.tasks,notes:S.notes,memories:S.memories,owner:S.owner,exported:new Date().toISOString()},null,2);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([d],{type:'application/json'}));a.download='nova_v11_backup.json';a.click();notif('📤 Data exported!');}
+
+// ═══════════════ NAVIGATION ═══════════════
+function goHome(){
+  document.getElementById('home').classList.add('active');
+  document.getElementById('panels-wrap').style.display='none';
+  document.getElementById('tabs').style.display='none';
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('nb-home').classList.add('active');
+}
+
+function goPanel(name){
+  document.getElementById('home').classList.remove('active');
+  document.getElementById('panels-wrap').style.display='block';
+  document.getElementById('tabs').style.display='flex';
+  sp(name);
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  const nb=document.getElementById('nb-'+name);if(nb)nb.classList.add('active');
+}
+
+function sp(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const p=document.getElementById('panel-'+name);if(p)p.classList.add('active');
+  const t=document.getElementById('tab-'+name);if(t)t.classList.add('active');
+}
+
+// ═══════════════ UI HELPERS ═══════════════
+function setResp(html,brain){
+  document.getElementById('nova-resp').innerHTML=html;
+  if(brain)document.getElementById('brain-lbl').textContent='⚡ '+brain.toUpperCase();
+}
+function addChatMsg(text,who){
+  const el=document.getElementById('chat-msgs');if(!el)return;
+  const d=document.createElement('div');d.className='msg '+(who==='nova'?'mn':'mu');
+  d.textContent=text;el.appendChild(d);el.scrollTop=el.scrollHeight;
+}
+function orbSet(cls,icon,label){
+  const o=document.getElementById('orb');o.className='';if(cls)o.classList.add(cls);o.textContent=icon;
+  const ol=document.getElementById('orb-lbl');if(ol)ol.textContent=label;
+}
+function notif(msg){
+  const el=document.getElementById('notif');el.textContent=msg;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3500);
+}
+function setMood(j,f,e){document.getElementById('mj').style.width=j+'%';document.getElementById('mfc').style.width=f+'%';document.getElementById('me').style.width=e+'%';}
+function moodPulse(){setInterval(()=>setMood(60+Math.random()*32,70+Math.random()*24,50+Math.random()*36),5500);}
+
+function updateBadge(){
+  const n=activeBrains().length;
+  document.getElementById('bbadge').textContent=n+' BRAIN'+(n!==1?'S':'');
+  const dot=document.getElementById('sdot');dot.className='sdot '+(n>0?'on':'off');
+  document.getElementById('s-b').textContent=n;
+}
+function updateStats(){
+  document.getElementById('s-t').textContent=S.tasks.filter(t=>!t.done).length;
+  document.getElementById('s-n').textContent=S.notes.length;
+  document.getElementById('s-m').textContent=S.memories.length;
+  updateBadge();
+}
+
+function renderBrainsHome(){
+  const el=document.getElementById('bh-grid');if(!el)return;
+  const list=[['groq','GROQ'],['openai','OPENAI'],['gemini','GEMINI'],['claude','CLAUDE'],['mistral','MISTRAL'],['deepseek','DEEPSEEK'],['together','TOGETHER'],['cohere','COHERE'],['perplexity','PERPLXTY'],['huggingface','HFACE']];
+  el.innerHTML=list.map(([id,name])=>`<div class="bh-row"><div class="bdot ${S.keys[id]&&S.keys[id].length>4?'on':'off'}"></div><div class="bname">${name}</div><div class="bst">${S.keys[id]&&S.keys[id].length>4?'✅':'➕'}</div></div>`).join('');
+}
+
+function renderBrainsFull(){
+  const el=document.getElementById('brains-full');if(!el)return;
+  const info={
+    groq:['⚡ GROQ','Ultra fast, FREE forever','console.groq.com'],
+    openai:['🟡 OPENAI GPT-4','Most powerful brain','platform.openai.com/api-keys'],
+    gemini:['🔵 GEMINI','Google AI, free','aistudio.google.com/app/apikey'],
+    claude:['🟠 CLAUDE','Best for coding & reasoning','console.anthropic.com'],
+    mistral:['🌪 MISTRAL','Free tier, European AI','console.mistral.ai'],
+    deepseek:['🧬 DEEPSEEK','Logic & math, cheap','platform.deepseek.com'],
+    together:['🤝 TOGETHER','Open source, $25 free','api.together.xyz'],
+    cohere:['🌊 COHERE','Language expert','dashboard.cohere.com'],
+    perplexity:['🔍 PERPLEXITY','Live web search AI','perplexity.ai/settings/api'],
+    huggingface:['🤗 HUGGINGFACE','Free open models','huggingface.co/settings/tokens']
+  };
+  el.innerHTML=Object.entries(info).map(([id,[name,desc,link]])=>{
+    const on=!!(S.keys[id]&&S.keys[id].length>4);
+    return `<div class="bfr"><div class="bdot ${on?'on':'off'}"></div><div class="bfi"><div class="bfn">${name}</div><div class="bfd">${desc}</div><div class="bfl">🔗 ${link}</div></div><div>${on?'<span style="color:var(--ok);font-size:11px">✅ ACTIVE</span>':'<span style="color:var(--dim);font-size:10px">➕ Add in Setup</span>'}</div></div>`;
+  }).join('');
+}
+
+function battMon(){
+  if('getBattery'in navigator)navigator.getBattery().then(b=>{
+    const u=()=>{const p=Math.round(b.level*100);document.getElementById('batt').textContent=(b.charging?'⚡':'')+p+'%';document.getElementById('batt').style.color=p<20?'var(--danger)':'var(--ok)';};
+    u();b.addEventListener('levelchange',u);b.addEventListener('chargingchange',u);
+  });
+}
+
+// ═══════════════ STORAGE ═══════════════
+function saveS(){
+  try{
+    localStorage.setItem('nova_v11',JSON.stringify({
+      owner:S.owner,keys:S.keys,tasks:S.tasks,notes:S.notes,
+      memories:S.memories,voiceName:S.voiceName,theme:S.theme,
+      permed:S.permed,brainMode:S.brainMode
+    }));
+  }catch(e){}
+}
+function loadS(){
+  try{
+    const raw=localStorage.getItem('nova_v11');if(!raw)return;
+    const d=JSON.parse(raw);
+    S.owner=d.owner||'';S.keys=d.keys||{};S.tasks=d.tasks||[];S.notes=d.notes||[];
+    S.memories=d.memories||[];S.voiceName=d.voiceName||'';S.theme=d.theme||'cyan';
+    S.permed=d.permed||false;S.brainMode=d.brainMode||'auto';
+    if(d.owner){const el=document.getElementById('own-name');if(el)el.value=d.owner;}
+    Object.entries(S.keys).forEach(([k,v])=>{const el=document.getElementById('k-'+k);if(el&&v)el.value=v;});
+    const bm=document.getElementById('brain-mode');if(bm)bm.value=S.brainMode||'auto';
+    if(d.owner){document.getElementById('tc-greet').textContent=`Welcome back, ${d.owner}! Ready to conquer today?`;}
+    if(d.theme&&d.theme!=='cyan'){const map={red:'#ff3366',gold:'#ffcc00',violet:'#9b59b6',green:'#00ff88',pink:'#ff69b4'};const c=map[d.theme];if(c)document.documentElement.style.setProperty('--p',c);}
+    if(d.memories)document.getElementById('mmb').style.width=Math.min(100,d.memories.length*5)+'%';
+  }catch(e){}
+}
+</script>
+</body>
+</html>
